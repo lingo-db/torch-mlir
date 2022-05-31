@@ -396,9 +396,9 @@ public:
     // inference they are constants, and for training they don't change shape
     // typically), so this is not too constraining.
     auto biasSize = bias.getType().cast<RankedTensorType>().getShape()[0];
-    if (biasSize == 1 || biasSize == ShapedType::kDynamicSize)
-      return rewriter.notifyMatchFailure(
-          op, "unimplemented: size-1 broadcasting for aten::LinearOp");
+    //if (biasSize == 1 || biasSize == ShapedType::kDynamicSize)
+    //  return rewriter.notifyMatchFailure(
+    //      op, "unimplemented: size-1 broadcasting for aten::LinearOp");
 
     Value batchDim = nullptr;
     int restDim = 0;

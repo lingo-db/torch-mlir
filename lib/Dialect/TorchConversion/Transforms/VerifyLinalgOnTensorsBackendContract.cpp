@@ -69,7 +69,7 @@ class VerifyLinalgOnTensorsBackendContractPass
     target.addDynamicallyLegalOp<GetNextSeedOp>(opHasLegalTypes);
 
     // Basic scalar operations.
-    target.addDynamicallyLegalDialect<func::FuncDialect>(isLegalScalarOp);
+    target.addDynamicallyLegalDialect<func::FuncDialect>(opHasLegalTypes);
     target.addDynamicallyLegalDialect<math::MathDialect>(isLegalScalarOp);
     target.addDynamicallyLegalDialect<arith::ArithmeticDialect>(
         isLegalScalarOp);
@@ -84,6 +84,9 @@ class VerifyLinalgOnTensorsBackendContractPass
 
     // ConstantOp is used for tensors and for scalars.
     target.addDynamicallyLegalOp<arith::ConstantOp>(opHasLegalTypes);
+
+    target.markOpRecursivelyLegal<func::FuncOp>(
+        [](mlir::func::FuncOp op) { return op->hasAttr("torch.ignore"); });
 
     RewritePatternSet patterns(context);
     if (failed(applyFullConversion(module, target, std::move(patterns)))) {

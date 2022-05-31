@@ -498,7 +498,29 @@ void IValueImporter::importCompilationUnit(torch::jit::CompilationUnit *cu) {
     // unused. These can be missing when round-tripping through the on-disk
     // format, even though they still cause import issues when importing
     // through the larger Python session where they originate.
-    // std::cerr << "NAME: " << function->qualname().qualifiedName() << "\n";
+    //std::cerr << "NAME: " << function->qualname().qualifiedName() << "\n";
+    std::string funcName=function->qualname().qualifiedName();
+    if(funcName.find("testmodule")!=std::string::npos){
+      MlirLocation loc = mlirLocationUnknownGet(context);
+      MlirType functionType =
+          getFunctionTypeFromSchema(context, function->getSchema());
+      // Use the function's qualified name from the compilation unit.
+      // This is a stable linkage name that matches Python module lookup
+      // conventions (see compilation unit import in IValueImporter for more details
+      // on qualified names).
+      MlirAttribute symNameAttr = mlirStringAttrGet(
+          context, toMlirStringRef(function->qualname().qualifiedName()));
+      MlirOperation func = createMlirOperation(
+          "builtin.func", loc, mlirRegionCreate(),
+          toMlirNamedAttribute("type", mlirTypeAttrGet(functionType)),
+          toMlirNamedAttribute("sym_name", symNameAttr));
+      mlirOperationSetAttributeByName(
+          func, toMlirStringRef("sym_visibility"),
+          mlirStringAttrGet(context, toMlirStringRef("private")));
+      mlirBlockInsertOwnedOperationBefore(
+          importBlock, mlirBlockGetTerminator(importBlock), func);
+      continue;
+    }
     // std::cerr << *torch::jit::toGraphFunction(function).graph();
     MethodAnnotation *annotation =
         annotator.getMethodAnnotationForFunction(function);
