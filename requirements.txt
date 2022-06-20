@@ -1,6 +1,4 @@
--f https://download.pytorch.org/whl/nightly/cpu/torch_nightly.html
---pre
-torch
+torch==1.12.0
 
 numpy
 torchvision
